@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    <title>JIIT Planner Temp </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #0a0a0a;
+            color: #ffffff;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            background-color: #111111;
+            border-bottom: 1px solid #222;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .batch-info {
+            color: #888;
+            font-size: 18px;
+        }
+
+        .filters-btn {
+            background: none;
+            border: 1px solid #333;
+            color: #888;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .filters-btn:hover {
+            border-color: #666;
+            color: #fff;
+        }
+
+        .timetable-container {
+            padding: 40px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .timetable {
+            display: grid;
+            grid-template-columns: 80px repeat(7, 1fr);
+            gap: 1px;
+            background-color: #222;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .time-slot, .day-header, .class-cell {
+            background-color: #0a0a0a;
+            padding: 16px;
+            min-height: 80px;
+        }
+
+        .day-header {
+            font-weight: 500;
+            text-align: center;
+            border-bottom: 2px solid #222;
+            padding: 20px 16px;
+        }
+
+        .time-slot {
+            color: #666;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            border-right: 2px solid #222;
+        }
+
+        .class-cell {
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 14px;
+            position: relative;
+        }
+
+        .class-cell:hover {
+            background-color: #1a1a1a;
+        }
+
+        .class-cell.has-class {
+            background-color: #111;
+            color: #fff;
+        }
+
+        .class-cell.has-class:hover {
+            background-color: #1a1a1a;
+            transform: translateY(-1px);
+        }
+
+        .lunch {
+            background-color: #0f0f0f;
+            color: #666;
+            font-style: italic;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1a1a1a;
+            border-radius: 12px;
+            padding: 32px;
+            min-width: 320px;
+            border: 1px solid #333;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .close-btn:hover {
+            background-color: #333;
+            color: #fff;
+        }
+
+        .modal-body {
+            color: #ccc;
+            line-height: 1.6;
+        }
+
+        .modal-row {
+            display: flex;
+            margin-bottom: 12px;
+        }
+
+        .modal-label {
+            font-weight: 500;
+            color: #888;
+            min-width: 100px;
+        }
+
+        .modal-value {
+            color: #fff;
+        }
+
+        .class-type {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+
+        .type-lecture {
+            background-color: #1a3a1a;
+            color: #4ade80;
+        }
+
+        .type-tutorial {
+            background-color: #3a3a1a;
+            color: #fbbf24;
+        }
+
+        .type-practical {
+            background-color: #1a1a3a;
+            color: #60a5fa;
+        }
+
+        .type-lab {
+            background-color: #2a1a2a;
+            color: #c084fc;
+        }
+
+
+        /* ===== MOBILE OPTIMIZATION ===== */
+
+/* Enable horizontal scroll on mobile */
+.timetable-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* smooth iOS scrolling */
+}
+
+/* Prevent grid from shrinking on mobile */
+.timetable {
+    min-width: 1000px; /* allows side scroll */
+}
+
+/* Remove ugly blue tap highlight */
+.class-cell {
+    -webkit-tap-highlight-color: transparent;
+    tap-highlight-color: transparent;
+}
+
+/* Smooth press feedback (mobile + desktop) */
+.class-cell.has-class {
+    transition: transform 0.15s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Tap / click animation */
+.class-cell.has-class:active {
+    transform: scale(0.97);
+    background-color: #1f1f1f;
+    box-shadow: inset 0 0 0 1px #333;
+}
+
+/* Slight glow on hover (desktop) */
+@media (hover: hover) {
+    .class-cell.has-class:hover {
+        box-shadow: 0 0 0 1px #333;
+    }
+}
+
+/* Better mobile spacing */
+@media (max-width: 768px) {
+    .timetable-container {
+        padding: 16px;
+    }
+
+    .header {
+        padding: 16px 20px;
+    }
+
+    .logo {
+        font-size: 18px;
+    }
+
+    .batch-info {
+        font-size: 14px;
+    }
+}
+
+
+
+
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">JIIT Planner B9 Sem-II</div>
+        <div class="batch-info">B9</div>
+       
+    </div>
+
+    <div class="timetable-container">
+        <div class="timetable">
+            <!-- Header Row -->
+            <div class="time-slot"></div>
+            <div class="day-header">Sunday</div>
+            <div class="day-header">Monday</div>
+            <div class="day-header">Tuesday</div>
+            <div class="day-header">Wednesday</div>
+            <div class="day-header">Thursday</div>
+            <div class="day-header">Friday</div>
+            <div class="day-header">Saturday</div>
+
+            <!-- 9:00 -->
+            <div class="time-slot">9:00</div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell has-class" onclick="showDetails('Universal Human Values', 'Tutorial', 'PRI  ', 'TS11', '9:00 AM - 9:50 AM','ABB1 2-FLOOR')">UHV</div>
+            
+            <div class="class-cell has-class" onclick="showDetails('Universal Human Values', 'Lecture', 'RAV', 'G1', '9:00 AM - 9:50 AM','ABB1 Ground Floor')">UHV</div>
+
+            <!-- 10:00 -->
+            <div class="time-slot">10:00</div>
+            <div class="class-cell"></div>
+            <div class="class-cell has-class" onclick="showDetails('Mathematics-II', 'Tutorial', 'Dr. Ram Surat Chauhan ', 'TS7', '10:00 AM - 10:50 AM',
+              'ABB1 2-Floor'
+            )">Mathematics</div>
+            <div class="class-cell has-class" onclick="showDetails('Physics-II', 'Lecure', '  Dr.Manoj Kumar ', 'FF3', '11:00 AM - 11:50 AM','ABB1 1-FLOOR')">Physics</div>
+            <div class="class-cell has-class" onclick="showDetails('Software Development Fundamentals-II', 'Lab', ' ASHISH MISHRA, SULABH TYAGI ', 'CL13', '10:00 AM - 11:50 AM','pata nahi kaha he ')">SDF Lab</div>
+            <div class="class-cell has-class" onclick="showDetails('Software Development Fundamentals-II', 'Lecture', 'Anita Sahoo', 'FF4', '10:00 AM - 10:50 AM','ABB1 1-FLOOR')">Software Development Fundamentals</div>
+
+            <div class="class-cell has-class" onclick="showDetails('Universal Human Values', 'Lecture', 'RAV', 'FF2', '10:00 AM - 10:50 AM','ABB1 1-FLOOR')">UHV</div>
+            <div class="class-cell"></div>
+
+           
+
+            <!-- 11:00 -->
+            <div class="time-slot">11:00</div>
+            <div class="class-cell"></div>
+            <div class="class-cell has-class" onclick="showDetails('Physics-II', 'Tutorial', ' Dr. Vaibhav Rawoot  ', 'TS7', '11:00 AM - 11:50 AM','ABB1 2-FLOOR')">Physics</div>
+            <div class="class-cell has-class" onclick="showDetails('Workshop', 'Tutorial', 'ASG', 'TS7', '11:00 AM - 11:50 AM','ABB1 2-FLOOR')">Workshop</div>
+             
+            <div class="class-cell"></div>
+             <div class="class-cell"></div>
+           
+            <div class="class-cell has-class" onclick="showDetails('Physics', 'Lecture', 'Dr.Manoj Kumar', 'FF2', '11:00 AM - 11:50 AM','ABB1 1-FLOOR')">Physics</div>
+            <div class="class-cell has-class" onclick="showDetails('Mathematics-II', 'Lecture', 'Dr. Ram Surat', 'FF4', '11:00 AM - 11:50 AM','ABB1 1-Floor')">Mathematics</div>
+
+            <!-- 12:00 -->
+            <div class="time-slot">12:00</div>
+            <div class="class-cell"></div>
+            <div class="class-cell">LUNCH</div>
+            <div class="class-cell">LUNCH</div>
+            <div class="class-cell">LUNCH</div>
+            <div class="class-cell">LUNCH</div>
+            <div class="class-cell">LUNCH</div>
+            <div class="class-cell">LUNCH</div>
+
+            
+
+            <!-- 1:00 -->
+            <div class="time-slot">1:00</div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell has-class" onclick="showDetails('Mathematics-II', 'Lecture', 'Dr. Ram Surat Sir', 'FF2', '1:00 PM - 1:50 PM','ABB1 1-FLOOR')">Mathematics</div>
+            <div class="class-cell has-class" onclick="showDetails('Physics-II', 'Lecture', 'Dr.Manoj Kumar', 'FF1', '1:00 PM - 1:50 PM','ABB1 1-FLOOR')">Physics</div>
+            <div class="class-cell has-class" onclick="showDetails('Physics', 'Lab', 'Dr. Ravi Gupta EKY ', 'PL2', '1:00 PM - 2:50 PM','ABB1 2-FLOOR')">Physics Lab</div>
+            <div class="class-cell has-class" onclick="showDetails('Life Skills ', 'Lab', 'Dr. Nibha Sinha ', 'LL', '1:00 PM - 2:50 PM','Language lab ')">Life Skills</div>
+            <div class="class-cell"></div>
+
+            <!-- 2:00 -->
+            <div class="time-slot">2:00</div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell has-class" onclick="showDetails('Software Development Fundamentals-II', 'Lecture', 'Dr. Anita Sahoo', 'FF2', '2:00 PM - 2:50 PM','ABB-1 1-FLOOR')">Software Development Fundamentals</div>
+            <div class="class-cell has-class" onclick="showDetails('Mathematics-II', 'Lecture', 'Dr. Ram Surat Sir', 'FF1', '2:00 PM - 2:50 PM','ABB1 1-FLOOR')">Mathematics</div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+
+            <!-- 3:00 -->
+            <div class="time-slot">3:00</div>
+            <div class="class-cell"></div>
+            <div class="class-cell has-class" onclick="showDetails('Software Development Fundamentals-II', 'Lecture', 'Dr. Anita Sahoo', 'FF3', '3:00 PM - 3:50 PM','ABB1 First Floor')">Software Development Fundamentals</div>
+
+            <div class="class-cell has-class" onclick="showDetails('Workshop', 'Lab', 'ASG', 'EW-2', '3:00 PM - 4:50 PM','Below OAT')">Workshop</div>
+
+
+
+             <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+
+            <!-- 4:00 -->
+            <div class="time-slot">4:00</div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell has-class" onclick="showDetails('Software Development Fundamentals-II', 'Tutorial', 'ASHISH MISHRA ', 'TS7', '4:00 PM - 4:50 PM','ABB1 2-FLOOR')">Software Development Fundamentals</div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+
+            <!-- 6:00 -->
+            <div class="time-slot">5:00</div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+            <div class="class-cell"></div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="classModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Class Details</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-row">
+                    <span class="modal-label">Time:</span>
+                    <span class="modal-value" id="modalTime"></span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Type:</span>
+                    <span class="modal-value" id="modalType"></span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Teacher:</span>
+                    <span class="modal-value" id="modalTeacher"></span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Batches:</span>
+                    <span class="modal-value">B9</span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Venue:</span>
+                    <span class="modal-value" id="modalVenue"></span>
+                </div>
+                <div class="modal-row">
+                    <span class="modal-label">Location:</span>
+                     <span class="modal-value" id="modalLocation"></span>
+                 </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDetails(subject, type, teacher, venue, time, location) {
+            document.getElementById('modalTitle').textContent = subject;
+            document.getElementById('modalTime').textContent = time;
+            
+;
+            
+            const typeElement = document.getElementById('modalType');
+            typeElement.innerHTML = type;
+            if (type === 'Lecture') {
+                typeElement.innerHTML += '<span class="class-type type-lecture">Lecture</span>';
+            } else if (type === 'Tutorial') {
+                typeElement.innerHTML += '<span class="class-type type-tutorial">Tutorial</span>';
+            } else if (type === 'Practical') {
+                typeElement.innerHTML += '<span class="class-type type-practical">Practical</span>';
+            } else if (type === 'Lab') {
+                typeElement.innerHTML += '<span class="class-type type-lab">Lab</span>';
+            }
+            
+            document.getElementById('modalTeacher').textContent = teacher || 'TBA';
+            document.getElementById('modalVenue').textContent = venue;
+document.getElementById('modalLocation').textContent = location || 'Not Specified';
+
+            document.getElementById('classModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('classModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('classModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        // Improve mobile tap responsiveness
+document.addEventListener('touchstart', function () {}, { passive: true });
+
+    </script>
+</body>
+</html>
